@@ -1,0 +1,111 @@
+{% extends "main.html" %}
+
+{%block title %}Authenticator{% endblock title %}
+
+
+{% block content %}
+
+{% load static %}
+<div class="limiter">
+  <div class="container-login100">
+    <div class="wrap-login100">
+      <div class="login100-pic js-tilt" data-tilt>
+        <img src="{% static 'templates/images/admin.png'%}" alt="IMG">
+      </div>
+
+      <form action="" id="authForm" method="" class="login100-form validate-form">
+        <span class="login100-form-title">
+          OTP Token
+        </span>
+        <input type="hidden" name="email" id="email" value="{{user}}">
+        {% if qr_code_url%}
+          <center>
+            <div class="wrap-input100 validate-input"  data-validate = "Password is required">
+              <img src="{{qr_code_url}}" alt="heyy">
+            </div>
+          </center>
+        {% endif %}
+        <div class="wrap-input100 validate-input" data-validate = "Password is required">
+          <input class="input100" type="password" id="authPass" name="authPass" placeholder="Enter the token">
+          <span class="focus-input100"></span>
+          <span class="symbol-input100">
+            <i class="fa fa-lock" aria-hidden="true"></i>
+          </span>
+        </div>
+        
+        <div class="container-login100-form-btn">
+          <button class="login100-form-btn" id="authButton" type="submit">
+            Submit
+          </button>
+        </div>
+
+        <!-- <div class="text-center p-t-12">
+          <span class="txt1">
+          </span>
+          <a class="txt2" href='{% url "recover-log" %}'>
+            Forgot Password?
+          </a>
+        </div> -->
+
+        <div class="text-center p-t-136">
+          <a class="txt2" href="{% url 'cancel-auth'%}">
+            Go back to admin
+            <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+    $(document).on("click","#authButton",function(e){
+        e.preventDefault()
+        pass = $("#authPass").val()
+        email = $("#email").val()
+        if(pass == "" || email == ""){
+            Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please Enter the Token Correctly!'
+            })
+        }
+        else{
+            $.ajax({
+                type:"POST",
+                url:'{% url "token-validator" %}',
+                headers:{'X-CSRFToken':'{{csrf_token}}'},
+                data:{
+                    email : email,
+                    pass : pass
+                },
+                success: function(response){
+                    console.log(response.res)
+                    if(response.res){
+                      Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: response.messages,
+                        showConfirmButton: false,
+                        timer: 2500,
+                        allowOutsideClick: false
+                        })
+                        setTimeout(()=> {
+                          window.location.href=`/`;
+                        },1000)
+                    }
+                    else{
+                      Swal.fire({
+                      icon: 'error',
+                      title: 'Oops...',
+                      text: response.messages
+                      })
+                    }
+                }
+            })
+        }
+        $("#authForm")[0].reset()
+    })
+</script>
+
+{% endblock %}

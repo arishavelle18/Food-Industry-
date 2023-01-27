@@ -1,0 +1,130 @@
+{% extends "main.html" %}
+{%block title %} Change Password {%endblock title%}
+{% block content %}
+{% load static %}
+<div class="limiter">
+    <div class="container-login100">
+      <div class="wrap-login100">
+        <div class="login100-pic js-tilt" data-tilt>
+          <img src="{% static 'templates/images/admin.png'%}" alt="IMG">
+        </div>
+  
+        <form action="" method="" id="otpForm" class="login100-form validate-form">
+          {% csrf_token %}
+          <span class="login100-form-title">
+            Change Password
+          </span>
+  
+          <!-- <div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
+            <input class="input100" type="text" name="email" placeholder="Email">
+            <span class="focus-input100"></span>
+            <span class="symbol-input100">
+              <i class="fa fa-envelope" aria-hidden="true"></i>
+            </span>
+          </div> -->
+          <input type="hidden" id="emailHide" value="{{name}}">
+          <div class="wrap-input100 validate-input" data-validate = "Password is required">
+            <input class="input100" type="password" name="password" id="newPassword" placeholder="New Password">
+            <span class="focus-input100"></span>
+            <span class="symbol-input100">
+              <i class="fa fa-lock" aria-hidden="true"></i>
+            </span>
+          </div>
+  
+          <div class="wrap-input100 validate-input" data-validate = "Password is required">
+            <input class="input100" type="password" name="password" id="confirmPassword" placeholder="Confirm Password">
+            <span class="focus-input100"></span>
+            <span class="symbol-input100">
+              <i class="fa fa-lock" aria-hidden="true"></i>
+            </span>
+          </div>
+          
+          <div class="container-login100-form-btn">
+            <button class="login100-form-btn" id="otpButton" type="submit">
+              Login
+            </button>
+          </div>
+  
+          <div class="text-center p-t-12">
+            <span class="txt1">
+              Forgot
+            </span>
+            <a class="txt2" href='{% url "login-page" %}'>
+                Return to Admin
+              </a>
+          </div>
+  
+          <div class="text-center p-t-136">
+            <!-- <a class="txt2" href="#">
+              Create your Account
+              <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+            </a> -->
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<script>
+    $(document).on("click","#otpButton",function(e){
+        e.preventDefault();
+        newPas = $("#newPassword").val()
+        conPas = $("#confirmPassword").val()
+        emailHide = $("#emailHide").val()
+        if(newPas == "" || conPas == "" || emailHide == "" ){
+            Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please Fill out the Form Properly!'
+                    })
+        }
+        else if(newPas != conPas){
+            Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'New Password and Confirm Password is not the Same'
+                    })
+        }
+        else{
+            $.ajax({
+                type:"POST",
+                url:'{% url "validate-pass-otp" %}',
+                headers:{'X-CSRFToken':'{{csrf_token}}'},
+                data:{
+                    newPas : newPas,
+                    conPas : conPas,
+                    emailHide : emailHide
+                },
+                success: function(response){
+                  
+                  if(response.res){
+                    console.log(response.res);
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Password has been Successfully Changed',
+                        showConfirmButton: false,
+                        timer: 3500,
+                        allowOutsideClick: false
+                        })
+                        setTimeout(()=> {
+                            window.location.href=`/admin/`;
+                        }
+                        ,1000);
+                    
+                  }
+                  else{
+                    Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: response.message
+                    })
+                  }
+                    
+                }
+
+            })
+        }
+        $("#otpForm")[0].reset();
+    })
+</script>
+{% endblock %}

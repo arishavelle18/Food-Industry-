@@ -1,0 +1,43 @@
+
+{% extends "adminportal/layout.html" %} 
+{%block title %} Portal {%endblock title%}
+{% block content %} {% load static %}
+<div class="limiter">
+  <h1>{{hey}}</h1>
+  <div class="container-login100">
+    <div class="wrap-login100">
+      <div class="login100-pic js-tilt" data-tilt>
+        <img src="{% static 'templates\images\img-01.png'%}" alt="IMG" />
+      </div>
+      <div class="login100-form validate-form">
+        <span class="login100-form-title">Welcome to our Homepage</span>
+        {% if not request.user.is_authenticated %}
+        <div class="container-login100-form-btn">
+          <a href="{% url 'menu' %}" class="operate-btn">Scan Attendance</a>
+        </div>
+        {% endif %}
+
+        <!-- need to delete this -->
+        {% if request.user.is_authenticated %}
+        <div class="container-login100-form-btn">  
+          <a href="{% url 'view-attendance' %}" class="operate-btn">View Attendance</a>
+        </div>
+        <div class="container-login100-form-btn">
+              <a href="{% url 'add-employee' %}" class="operate-btn">Add Employee</a>
+        </div>
+        <div class="container-login100-form-btn">
+          <a href="/administrator/" class="operate-btn">More Function</a>
+        </div>
+        <div class="container-login100-form-btn">
+            <a href="{% url 'logout-page' %}" class="logout-btn">Logout</a>
+        </div>
+        {%endif%}
+        
+      
+        {% endblock %}
+        
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

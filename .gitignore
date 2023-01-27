@@ -1,0 +1,13 @@
+env/
+node_modules/
+package-lock.json
+package.json
+db.sqlite3
+__pycache__/
+static/media/
+.dockerignore
+benchmarks.py
+LICENSE
+CONTRIBUTING.md
+tutorial.ipynb
+runs/detect/

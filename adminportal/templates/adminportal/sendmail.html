@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+        <h1>Verify your recovery mail</h1>
+        <h3>Use this code to finish setting up this recovery email: </h3>
+        <p>code <strong>{{myuuid}}</strong></p>
+        <p>This code will expire in 24 hours.</p>
+        <p>If you don’t recognize <strong>{{user}}</strong>, you can safely ignore this email.</p>
+ 
+
+{%endblock%}

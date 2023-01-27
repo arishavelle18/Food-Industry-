@@ -1,0 +1,51 @@
+{% extends "main.html"%}
+{% block title %}Employee Time In{% endblock title%}
+{% block content %}
+<div class="container mt-3">
+    <a href="{% url 'menu'%}" class="btn btn-warning">Go Back</a>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <br>
+                <center><div id="qr-reader" style="width: 600px"></div></center>
+                <h1></h1>
+                 
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function onScanSuccess(decodedText, decodedResult) {
+        // ajax
+        // yung attendance
+    $.ajax({
+        type :'GET',
+        url : "{% url 'qr-validation' %}",
+        data : {
+            "decodedText" : decodedText
+        },
+        success : function(response){
+            
+            if(response.ret){
+                console.log(response.ret);
+                // a = `url 'test' ${response.text}`
+                // console.log(a)  
+                
+                window.location.href=`/websites/test`
+            }
+            else{
+                console.log("Failed to record")
+                $('h1').html("Result: <span>Failed</span>")
+            }
+        },
+        error: function(response){
+            alert("An Error Occured");
+        }
+    })
+    console.log(`Code scanned = ${decodedText}`, decodedResult);
+    }
+    var html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", { fps: 10, qrbox: 300 });
+    html5QrcodeScanner.render(onScanSuccess);
+</script>
+{% endblock %}

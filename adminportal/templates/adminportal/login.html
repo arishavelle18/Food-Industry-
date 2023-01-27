@@ -1,0 +1,109 @@
+{% extends 'main.html'%}
+{%block title %} Admin Login {%endblock title%}
+{%block content%}
+{% load static %}
+<div class="limiter">
+  <div class="container-login100">
+    <div class="wrap-login100">
+      <div class="login100-pic js-tilt" data-tilt>
+        <img src="{% static 'templates/images/admin.png'%}" alt="IMG">
+      </div>
+
+      <form id="loginForm" method="" class="login100-form validate-form">
+        {% csrf_token %}
+        <span class="login100-form-title">
+          Admin Login
+        </span>
+
+        <div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
+          <input class="input100" type="text" name="email" id="loginEmail" placeholder="Email">
+          <span class="focus-input100"></span>
+          <span class="symbol-input100">
+            <i class="fa fa-envelope" aria-hidden="true"></i>
+          </span>
+        </div>
+
+        <div class="wrap-input100 validate-input" data-validate = "Password is required">
+          <input class="input100" type="password" id="loginPassword" name="password" placeholder="Password">
+          <span class="focus-input100"></span>
+          <span class="symbol-input100">
+            <i class="fa fa-lock" aria-hidden="true"></i>
+          </span>
+        </div>
+        
+        <div class="container-login100-form-btn">
+          <button class="login100-form-btn" id="loginButton" type="submit">
+            Login
+          </button>
+        </div>
+
+        <div class="text-center p-t-12">
+          <span class="txt1">
+          </span>
+          <a class="txt2" href='{% url "recover-log" %}'>
+            Forgot Password?
+          </a>
+        </div>
+
+        <div class="text-center p-t-136">
+          <!-- <a class="txt2" href="#">
+            Create your Account
+            <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+          </a> -->
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!--===============================================================================================-->
+	<script src="js/main.js"></script>
+  <script>
+    $(document).on("click","#loginButton",function(e){
+      e.preventDefault()
+      pass = $("#loginPassword").val()
+      email = $("#loginEmail").val()
+      if(email =="" || pass == ""){
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please Fill out the Login Properly!'
+            })
+      }
+      else{
+        $.ajax({
+          type:"POST",
+          url:'{% url "login-verify" %}',
+          headers:{'X-CSRFToken':'{{csrf_token}}'},
+          data:{
+              email : email,
+              pass : pass
+          },
+          success: function(response){
+            console.log(response)
+            if(response.res){
+              Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: response.message,
+                        showConfirmButton: false,
+                        timer: 2500,
+                        allowOutsideClick: false
+                        })
+                        setTimeout(()=> {
+                          window.location.href=`/authenticator`;
+                        },1000)
+              
+            }else{
+              Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: response.message
+              })
+            }
+          }
+        })
+      }
+      $("#loginForm")[0].reset()
+    })
+  </script>
+{%endblock%}

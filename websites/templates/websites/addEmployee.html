@@ -1,0 +1,29 @@
+{% extends 'main.html' %} 
+{% block title %}Add Employee{% endblock title%}
+{% block content %} {%load static%}
+
+<div class="limiter">
+  <div class="container-login100">
+    <div class="wrap-login100">
+      <div class="login100-pic js-tilt" data-tilt>
+        <img src="{% static 'templates/images/add_employee.png'%}" alt="IMG" />
+      </div>
+      <!-- <a href="{% url 'home' %}" class="btn btn-danger mb-3">Go Back</a>-->
+
+      <form action="" method="POST" class="login100-form validate-form">
+        <span class="login100-form-title"> Add Employee </span>
+        {% csrf_token %} {{form.as_p}}
+        <input type="submit" value="Submit" class="btn btn-success" />
+      </form>
+      <div class="back-operate">
+        <a
+          href="{% url 'home' %}"
+          class="fa fa-arrow-circle-left"
+          style="font-size: 24px"
+        ></a>
+        Back
+      </div>
+    </div>
+    {% endblock %}
+  </div>
+</div>

@@ -1,0 +1,60 @@
+{% extends "main.html" %}
+{% block title %}Employee Time In{% endblock title%}
+{% block content %}
+<h2>Equipments</h2>
+<a href="" class="btn btn-success" id="inspect" value="asda">Inspect</a>
+<ul>
+    <li>Mask: <span id="mask-res">❌</span></li>   
+</ul>
+
+<a href="{% url 'menu' %}" class="btn btn-warning">Go Back</a>
+<script>
+    $(document).ready(function(){
+       $("#inspect").click(function(e){
+        e.preventDefault();
+        a = $(this).attr("value")
+        console.log(a)
+        $.ajax({
+                type : 'GET',
+                url : "{% url 'scanner-inspect' %}",
+                success : function(response){
+                    console.log(response.mask);
+                //    if(response.mask){
+                //     console.log("Meron pre");
+                //     $("#mask-res").html("✔️")
+                //    }
+                },
+                error:function(response){
+                    alert("An Error Occured")
+                }
+            })
+       })
+
+       setInterval(function(){
+            $.ajax({
+                type : 'GET',
+                url : "{% url 'get-update' %}",
+                datatype : "application/json",
+                success : function(response){
+                    console.log(response)
+                    
+                    for(var key in response.inspect){
+                        
+                       if( response.inspect[key]["name"] == "Mask"){
+                            $("#mask-res").html("✔️")
+
+                            
+                       }
+                            
+                    }
+                },
+                  error: function (request, error) {
+                        console.log(arguments);
+                        alert(" Can't do because: " + error);
+                    },
+            })
+        },1000);
+    })
+</script>
+
+{% endblock %}

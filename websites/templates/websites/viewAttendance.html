@@ -1,0 +1,263 @@
+{% extends "main.html"%}
+{% block title %}Attendance{% endblock title%}
+{% block content%}
+
+
+<div class="container mt-3">
+    <nav class="navbar navbar-expand-sm bg-light">
+        <!-- Links -->
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link btn btn-danger" href="{% url 'home' %}">Go Back</a>
+          </li>      
+        </ul>
+      </nav>
+    <div class="container">
+        <div class="container">
+            <h1>Attendance : </h1>
+            <form class="header__search" method="GET" action="{% url 'view-attendance' %}">
+                <label>
+                  <input placeholder="Search for rooms..." name="q" input="text"/>
+                </label>
+              </form>
+        </div>
+        <br>
+        {% if request.user.is_authenticated %}
+        <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                Download all Attendance (.csv)
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container">
+                            <h1>Download Files</h1>
+                            <div class="container">
+                                <form role="form" id="fileForm">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                          <span class="input-group-text" id="inputGroup-sizing-default">Id</span>
+                                        </div>
+                                        <input type="text" id="idText" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                                      </div>
+                                      <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                          <div class="input-group-text">
+                                            <input type="checkbox" id="remember" aria-label="Checkbox for following text input" onclick="validate()">
+                                            <span id="inputGroup-sizing-default"> All</span>
+                                          </div>
+                                        </div>
+                                        
+                                      </div>
+                                      <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                          <span class="input-group-text" id="inputGroup-sizing-default">From</span>
+                                        </div>
+                                        <input type="date" id="minDate" class="form-control noTyping" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" min={{old}} max={{latest}}>
+                                      </div>
+                                      <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                          <span class="input-group-text" id="inputGroup-sizing-default">To</span>
+                                        </div>
+                                        <input type="date" class="form-control noTyping" id="maxDate" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" min={{old}} max={{latest}}>
+                                      </div>
+                                    
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <a href="#" class="btn btn-primary" id="adminSubmit">Download</a>
+                    </div>
+                </div>
+                </div>
+  </div>
+        {% endif %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">No.</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Equipment</th>
+             
+                </tr>
+            </thead>
+            <tbody>
+                    {% for user in attend %}
+                    <tr>
+                        <td>{{user.owner.id}}</td>
+                        <td>{{user.personCode}}</td>
+                        <td>{{user.created}}
+                            {% if user.created.hour <= 7 and user.created.minute <= 59 or user.created.hour == 8 and user.created.minute == 0 and user.status == "time in"%}
+                                <strong>On Time</strong>
+                            {%elif user.status == "time in"%}
+                                <strong>Late</strong>
+                            {%endif%}
+                        </td>
+                        <td>{{user.status|capfirst}}</td>
+                       
+                       
+                        {% if user.inspect.all %}
+                        {% for ins in user.inspect.all%}
+                            <td>{{ins}}</td>   
+                        {% endfor %}
+                        {% elif not user.inspect.all and user.status == "time in" %}
+                            <td>No Equipment</td>   
+                        {% else %}
+                            <td>--</td>
+                        {% endif %}
+                        </tr>
+                        
+                    {% endfor%}
+            </tbody>
+        </table>
+        {% if not attend.count %}
+            <h3 class="text-center">No List</h3>
+        {% endif%}
+    </div>
+
+    
+</div>
+
+<script>
+    //  stop user to type
+    document.querySelectorAll(".noTyping").forEach(el=>{
+        el.addEventListener("keydown", function(e){
+            e.preventDefault()
+        })
+    })
+
+
+    function validate() {
+        if (document.getElementById('remember').checked) {
+            // if you check the checkbox meaning you need to disable the id input
+            document.getElementById('idText').disabled = true;
+            // bypass the form so that it will enter to our backend keyword = All
+            document.getElementById('idText').value = "All";
+        } else {
+            // if the checkbox is unchecked meaning to say the input must be visible 
+            document.getElementById('idText').disabled = false;
+            // if the input is visible then you need to remove the value that you insert for bypassing the backend
+            document.getElementById('idText').value = "";
+        }
+    }
+
+    //  this will help to convert the excel
+    function convertToCSV(arr) {
+        var array = [Object.keys(arr[0])]
+        array[0].shift()
+        array[0].unshift("No")
+        array = array.concat(arr)
+        // return array
+        var count = 0;
+        array = array.map(it => {
+            // Object.values(it).filter())
+            // return 
+           b =  Object.values(it).filter(val => isNaN(val))
+           if (count >=1){
+            b.unshift(count)
+           }
+           count++;
+           
+           return b.toString()
+        }).join('\n')
+        
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(array);
+        hiddenElement.target = '_blank';
+
+        //provide the name for the CSV file to be downloaded
+        hiddenElement.download = 'Attendance_reports.csv';
+        hiddenElement.click();
+    }
+
+    $(document).on("click","#adminSubmit",function(e){
+        e.preventDefault();
+        id =$("#idText").val();
+        minDate = $("#minDate").val();
+        maxDate = $('#maxDate').val();
+        $('#fileForm')[0].reset();
+        if(id == "" || minDate == "" || maxDate =="" ){
+            Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please Fill out the Form Properly!'
+            })
+        }
+        else{
+        // convert the date in Date() in javascript
+        minDate= new Date(minDate)
+        minYear = minDate. getFullYear();
+        minMonth = minDate. getMonth()+1;
+        minDay = minDate. getDate();
+
+        maxDate= new Date(maxDate)
+        maxYear = maxDate. getFullYear();
+        maxMonth = maxDate. getMonth()+1;
+        maxDay = maxDate. getDate();
+        // check if the minimum date is lower than maximum date
+        if(minDate > maxDate){
+            Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please Fill out the Form Properly!'
+            })
+        }
+        else{
+            // use ajax here
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'get-attendance' %}",
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data:{
+                    id : id,
+                    minDate : minDate,
+                    minYear:minYear,
+                    minMonth:minMonth,
+                    minDay:minDay,
+                    maxDate : maxDate,
+                    maxYear : maxYear,
+                    maxMonth : maxMonth,
+                    maxDay : maxDay
+                },
+                success:function(response){
+                    if(response.test && response){
+                        convertToCSV(response.test)
+                        Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Files has been Successfully Converted',
+                        showConfirmButton: false,
+                        timer: 3500
+                        })
+                    }
+                    else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Information not Found!'
+                        })
+                    }
+                },
+                error : function(response){
+                    alert("An Error Occured")
+                }
+            })
+        }
+        }
+    })
+    
+</script>
+
+{% endblock %}
