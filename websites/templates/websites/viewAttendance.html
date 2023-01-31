@@ -15,11 +15,11 @@
     <div class="container">
         <div class="container">
             <h1>Attendance : </h1>
-            <form class="header__search" method="GET" action="{% url 'view-attendance' %}">
+            <!-- <form class="header__search"> -->
                 <label>
-                  <input placeholder="Search for rooms..." name="q" input="text"/>
+                  <input placeholder="Search for rooms..." name="q" class="searchEng" input="text"/>
                 </label>
-              </form>
+              <!-- </form> -->
         </div>
         <br>
         {% if request.user.is_authenticated %}
@@ -82,54 +82,17 @@
                 </div>
   </div>
         {% endif %}
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">No.</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Timestamp</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Equipment</th>
-             
-                </tr>
-            </thead>
-            <tbody>
-                    {% for user in attend %}
-                    <tr>
-                        <td>{{user.owner.id}}</td>
-                        <td>{{user.personCode}}</td>
-                        <td>{{user.created}}
-                            {% if user.created.hour <= 7 and user.created.minute <= 59 or user.created.hour == 8 and user.created.minute == 0 and user.status == "time in"%}
-                                <strong>On Time</strong>
-                            {%elif user.status == "time in"%}
-                                <strong>Late</strong>
-                            {%endif%}
-                        </td>
-                        <td>{{user.status|capfirst}}</td>
-                       
-                       
-                        {% if user.inspect.all %}
-                        {% for ins in user.inspect.all%}
-                            <td>{{ins}}</td>   
-                        {% endfor %}
-                        {% elif not user.inspect.all and user.status == "time in" %}
-                            <td>No Equipment</td>   
-                        {% else %}
-                            <td>--</td>
-                        {% endif %}
-                        </tr>
-                        
-                    {% endfor%}
-            </tbody>
-        </table>
-        {% if not attend.count %}
-            <h3 class="text-center">No List</h3>
-        {% endif%}
+        <div class="table">
+            
+            
+        </div>
+        
+        
     </div>
 
     
 </div>
-
+<script src="//cdn.jsdelivr.net/npm/intl-dateformatter/DTFormat.js"></script>
 <script>
     //  stop user to type
     document.querySelectorAll(".noTyping").forEach(el=>{
@@ -257,7 +220,185 @@
         }
         }
     })
+
+function convertDateToUTC(date) { 
+return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
+}
+function fixDate(date){
+    date = convertDateToUTC(date)
+    const dt = date;
+    const padL = (nr, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
+
+    let format=`${
+        padL(dt.getMonth()+1)}/${
+        padL(dt.getDate())}/${
+        dt.getFullYear()} ${
+        padL(dt.getHours())}:${
+        padL(dt.getMinutes())}:${
+        padL(dt.getSeconds())}`;
+    return format
+}
+var addattendance = []
+function getEquipment(id){
     
+    $.ajax({
+        url:"{% url 'get-equipment'%}",
+        data:{
+            id : id
+        },
+        success:function(response){
+            if(response.res){
+                addattendance.concat(`<td>${response.equipment[0]["name"]}</td>`)
+                console.log(addattendance)
+                // return addattendance
+            }else{
+                // addattendance =  `<td>No Equipment</td>`
+                console.log(addattendance)
+            }
+            
+        },
+        error:function(request,status,error){
+            console.log(request.responseText)
+        }
+    })
+}
+
+function posting(){
+    q = "";
+    
+    $.ajax({
+        url: "{% url 'update-attendance' %}",
+        data:{
+            q : q
+        },
+        success:function(response){
+            if(response.hey.length != 0){
+            let attendance =`
+            <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">No.</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Time In</th>
+                    <th scope="col">Equipments</th>
+                    <th scope="col">Time Out</th>
+                    <th scope="col">Remarks</th>
+                    
+                    
+                </tr>
+            </thead>
+            <tbody>`;
+                response.hey.forEach(element =>{
+                    attendance +=`<tr>
+                        <td>${element.owner_id}</td>
+                        <td>${element.name}</td>
+                        <td>${fixDate(new Date(element.created_at))}`;
+                        console.log(element.created_at)
+                        let date = convertDateToUTC(new Date(element.created_at))
+                        if((date.getHours() <= 7 && date.getMinutes() <= 59) || (date.getHours() == 8 && date.getMinutes() == 0)){
+                            attendance += ` <strong>On Time</strong></td>`;
+                        }else{
+                            attendance +=` <strong>Late</strong></td>`;
+                        }
+                        try{
+                            attendance += `<td>${element.inspect[0]['1']}</td>`
+                        }
+                        catch(e){
+                            attendance += `<td>No Equipment</td>`
+                        }      
+                        try {
+                            json= JSON.parse(element.my_json_field);
+                            // yyyy-mm-dd hh:mm:ss
+                            date = fixDate(new Date(json[Object.keys(json)[Object.keys(json).length - 1]]["time"]))
+                            attendance +=`<td>${date}</td>`
+                            attendance +=`<td>--</td>`
+                        } catch (e) {
+                            attendance +=`<td>--</td>`
+                            attendance +=`<td>No Time Out</td>`
+                        }
+                   
+                    
+                })
+                attendance += `</tbody>
+                </table>`;
+                $(".table").html(attendance)
+            }else{
+                let attendance = `<h3 class="text-center" id="listing" >No List</h3>`
+                $(".table").html(attendance)
+            }
+            
+        },
+        error:function(request,status,error){
+            console.log(request.responseText)
+        }
+    })
+}
+$(".searchEng").keyup(function(e){
+    e.preventDefault();
+    q = $(this).val();
+    $.ajax({
+        url:"{% url 'update-attendance'%}",
+        data:{q:q},
+        success:function(response){
+            if(response.hey.length != ""){
+            let attendance =`
+            <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">No.</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Time In</th>
+                    <th scope="col">Equipments</th>
+                    <th scope="col">Time Out</th>
+                    <th scope="col">Remarks</th>
+                    
+                    
+                </tr>
+            </thead>
+            <tbody>`;
+                response.hey.forEach(element =>{
+                    attendance +=`<tr>
+                        <td>${element.owner_id}</td>
+                        <td>${element.name}</td>
+                        <td>${fixDate(new Date(element.created_at))}`;
+                        console.log(element.created_at)
+                        let date = convertDateToUTC(new Date(element.created_at))
+                        if((date.getHours() <= 7 && date.getMinutes() <= 59) || (date.getHours() == 8 && date.getMinutes() == 0)){
+                            attendance += ` <strong>On Time</strong></td>`;
+                        }else{
+                            attendance +=` <strong>Late</strong></td>`;
+                        }
+                        try{
+                            attendance += `<td>${element.inspect[0]['1']}</td>`
+                        }
+                        catch(e){
+                            attendance += `<td>No Equipment</td>`
+                        }      
+                        try {
+                            json= JSON.parse(element.my_json_field);
+                            // yyyy-mm-dd hh:mm:ss
+                            date = fixDate(new Date(json[Object.keys(json)[Object.keys(json).length - 1]]["time"]))
+                            attendance +=`<td>${date}</td>`
+                            attendance +=`<td>--</td>`
+                        } catch (e) {
+                            attendance +=`<td>--</td>`
+                            attendance +=`<td>No Time Out</td>`
+                        }
+                    
+                })
+                attendance += `</tbody>
+                </table>`;
+                
+            $(".table").html(attendance)
+            }else{
+                let attendance = `<h3 class="text-center" id="listing" >No List</h3>`
+                $(".table").html(attendance)
+            }
+        }
+
+    })
+})
+posting();
 </script>
 
 {% endblock %}

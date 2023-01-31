@@ -22,5 +22,7 @@ urlpatterns = [
     path("scanner",views.scanner,name="scanner"),
     path("scanner-validation",views.scannerValidation,name="scanner-validation"),
     path("scanner-inspect",views.scannerInspect,name="scanner-inspect"),
-    path("scanner-get-update",views.scannerGetUpdate,name="scanner-get-update")
+    path("scanner-get-update",views.scannerGetUpdate,name="scanner-get-update"),
+    path("update-attendance",views.updateAttendance,name="update-attendance"),
+    path("get-equipment",views.getEquipment,name="get-equipment")
 ]

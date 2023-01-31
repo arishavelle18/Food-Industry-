@@ -79,8 +79,9 @@ class Profiles(models.Model):
     
 
 class MyModel(models.Model):
+   owner = models.ForeignKey(Profiles,on_delete=models.SET_NULL,null=True)
    name = models.CharField(max_length=100)
-   my_json_field = models.JSONField(default={})
+   my_json_field = models.JSONField(default=dict)
    created_at = models.DateTimeField()
    inspect = models.ManyToManyField(Equipment,related_name="modelinspect" ,blank=True)
    def __str__(self):

@@ -237,15 +237,65 @@ def viewAttendance(request):
 
     # get all the attendance but you can see if the person have a complete equipments in inpection part
     if q :
-        attend = Attendance.objects.all().filter(Q(personCode__icontains=q) | Q(owner__id__icontains=q)).exclude(Q(inspect__name=None) & Q(status="time in"))
+        attend = MyModel.objects.all().filter(Q(name__icontains=q) | Q(owner__id__icontains=q)).exclude(Q(inspect__name=None))
     else:
         attend = Attendance.objects.all()
+        attend = MyModel.objects.all()
+        # attend_data = [{'name': user.name,"owner_id":user.owner_id,"created_at":user.created_at,"my_json_field":user.my_json_field, 'inspect': list(user.inspect.values_list('id', 'name'))} for user in attend]
+        
+
+
+        # person = attend.value_list("inspection")
+        # return HttpResponse(attend.owner)
         # .exclude(Q(inspect__name=None) & Q(status="time in"))
     logs = HistoryAttendance.objects.all()
     context = {"attend":attend,"logs":logs,"old":f"{old.year}-{old.month}-{old.day}","latest":f"{latest.year}-{latest.month}-{latest.day}"}
-    
 
     return render(request,"websites/viewAttendance.html",context)
+
+# eto pa ajax
+def updateAttendance(request):
+    q = request.GET.get('q')  if request.GET.get('q') != None else ""
+    #  delete all the data that has no equipment 
+        # delete_attend = Attendance.objects.all().filter(Q(status="time in")).exclude(~Q(inspect__name =None))
+        # if delete_attend:
+        #     delete_attend.delete()
+
+    # get all the attendance but you can see if the person have a complete equipments in inpection part
+    if q :
+        attend = MyModel.objects.all().filter(Q(name__icontains=q) | Q(owner__id__icontains=q))
+    
+    else:
+        attend = Attendance.objects.all()
+        attend = MyModel.objects.all()
+        
+    attend_data = [{'name': user.name,"owner_id":user.owner_id,"created_at":user.created_at,"my_json_field":user.my_json_field, 'inspect': list(user.inspect.values_list('id', 'name'))} for user in attend]
+        
+
+        # person = attend.value_list("inspection")
+        # return HttpResponse(attend.owner)
+        # .exclude(Q(inspect__name=None) & Q(status="time in"))
+    logs = HistoryAttendance.objects.all()
+    # context = {"attend_ins":attend_data,"logs":logs,"old":f"{old.year}-{old.month}-{old.day}","latest":f"{latest.year}-{latest.month}-{latest.day}"}
+
+    return JsonResponse({"hey":attend_data,})
+    
+def getEquipment(request):
+    id = request.GET.get("id") if request.GET.get("id") is not None else ""
+    today = datetime.now()
+    year,month,day = [today.year,today.month,today.day]
+    try:
+        person = MyModel.objects.get(
+        owner_id = id,
+        created_at__year = year,
+        created_at__month = month,
+        created_at__day = day
+        )
+    except:
+        return JsonResponse({"res":False,})
+    equipment = person.inspect.all()
+    return JsonResponse({"res":True,"equipment":list(equipment.values())})
+    pass
 
 # @login_required(login_url="login-page")
 # scan timeout 
@@ -443,7 +493,8 @@ def scannerValidation(request):
     if check and not attend:
         MyModel.objects.create(
             name = text,
-            created_at = today
+            created_at = today,
+            owner = check[0],
         )
         # create session for inspection
         request.session["qr"] = text
