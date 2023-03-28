@@ -177,7 +177,8 @@ def test2(request):
 @admin_only  # check if the user is already otp or not
 def getAttendance(request):
     
-    id = request.POST['id']
+    id = request.POST.get('id')
+    
     # chec the validity of uuid in the id
     if not id == "All":
         try:
@@ -196,13 +197,13 @@ def getAttendance(request):
     maxDay = request.POST["maxDay"]
     max = dt.date(int(maxYear),int(maxMonth),int(maxDay))
     if not id == 'All':
-        test = Attendance.objects.filter(owner=id,created__date__range=(min,max))
+        test = MyModel.objects.filter(owner=id,created_at__date__range=(min,max))
         if test:
             return JsonResponse({"id":id,"minDate":minDate,"maxDate":maxDate,"test":list(test.values())})
         else:
             return JsonResponse({})
     else:
-        test = Attendance.objects.filter(created__date__range=(min,max))
+        test = MyModel.objects.filter(created_at__date__range=(min,max))
         if test:
             return JsonResponse({"id":id,"minDate":minDate,"maxDate":maxDate,"test":list(test.values())})
         else:
