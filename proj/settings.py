@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'cloudinary',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -168,3 +169,4 @@ STATICFILES_DIRS = [
 #  BASE_DIR / 'static/images'
 MEDIA_ROOT =BASE_DIR / 'static/media'
 # MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR),"media_root")
+

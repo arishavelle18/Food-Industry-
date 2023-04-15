@@ -535,3 +535,6 @@ def scannerGetUpdate(request):
     else:
         context ={"inspect": "" ,"pk":pk}
         return render(request,"websites/test.html",context)
+
+
+
